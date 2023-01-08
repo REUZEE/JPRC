@@ -1,4 +1,4 @@
-package org.reuze.jrpc.common;
+package org.reuze.jrpc.common.proxy;
 
 import org.reuze.jrpc.client.RpcClient;
 
@@ -14,5 +14,11 @@ public class JRpcProxy {
     public static <T> T getProxy(RpcClient rpcClient, Class<T> clz) {
         return (T) Proxy.newProxyInstance(clz.getClassLoader(),
                 new Class<?>[]{clz}, new RpcInvoker<T>(rpcClient, clz));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getProxy(Class<T> clz) {
+        return (T) Proxy.newProxyInstance(clz.getClassLoader(),
+                new Class<?>[]{clz}, new RpcInvoker<T>(clz));
     }
 }
