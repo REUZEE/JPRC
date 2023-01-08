@@ -5,13 +5,17 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
+import org.reuze.jrpc.common.URL;
 import org.reuze.jrpc.protocol.RpcRequest;
 import org.reuze.jrpc.protocol.RpcResponse;
 import org.reuze.jrpc.protocol.codec.RpcDecoder;
 import org.reuze.jrpc.protocol.codec.RpcEncoder;
 import org.reuze.jrpc.protocol.serialize.JsonSerializer;
+import org.reuze.jrpc.registry.Registry;
+import org.reuze.jrpc.registry.zk.ZkRegistry;
+import org.reuze.jrpc.registry.zk.RegistryFactory;
+import org.reuze.jrpc.registry.zk.ZkRegistryFactory;
 import org.reuze.jrpc.service.RpcHandler;
 
 import java.net.InetSocketAddress;
@@ -33,7 +37,7 @@ public class RpcServer {
     private ChannelFuture channelFuture;
     private final EventLoopGroup bossGroup = new NioEventLoopGroup();
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
-
+    private Registry registry;
     public Map<Class<?>, Object> interface2Impl = new ConcurrentHashMap<>();
 
     public RpcServer(String ip, int port) {
@@ -61,20 +65,35 @@ public class RpcServer {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 ChannelPipeline pipeline = socketChannel.pipeline();
-                pipeline.addLast(new LengthFieldBasedFrameDecoder(65535,0,4));
+                // pipeline.addLast(new LengthFieldBasedFrameDecoder(65535,0,4));
                 pipeline.addLast("decoder", new RpcDecoder(RpcRequest.class, new JsonSerializer()));
                 pipeline.addLast("encoder", new RpcEncoder(RpcResponse.class, new JsonSerializer()));
                 pipeline.addLast("handler", new RpcHandler(interface2Impl));
             }
         });
+
+        this.connectRegistry();
     }
 
     public void register(Object impl) {
+        URL url = new URL();
+        url.setPort(this.port);
+        url.setIp(this.ip);
         Class<?>[] interfaces = impl.getClass().getInterfaces();
         for (Class<?> in : interfaces) {
             log.info("Register [{}] for [{}]", impl.getClass().getName(), in.getName());
             interface2Impl.putIfAbsent(in, impl);
+            url.setServiceName(in.getName());
+            registry.register(url);
         }
+    }
+
+    private void connectRegistry() {
+        RegistryFactory registryFactory = new ZkRegistryFactory();
+        URL url = new URL();
+        url.setIp(ZkRegistry.ZK_IP );
+        url.setPort(ZkRegistry.ZK_PORT);
+        registry = registryFactory.getRegistry(url);
     }
 
     public void stop() {

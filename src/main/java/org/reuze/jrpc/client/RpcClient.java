@@ -5,7 +5,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,7 @@ public class RpcClient {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new LengthFieldBasedFrameDecoder(65535,0,4));
+                        // pipeline.addLast(new LengthFieldBasedFrameDecoder(65535,0,4));
                         pipeline.addLast("encoder", new RpcEncoder(RpcRequest.class, new JsonSerializer()));
                         pipeline.addLast("decoder", new RpcDecoder(RpcResponse.class, new JsonSerializer()));
                         pipeline.addLast("handler", clientHandler);
@@ -74,11 +73,19 @@ public class RpcClient {
     }
 
     public RpcResponse send(final RpcRequest rpcRequest) {
+//        channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) future -> {
+//           if (future.isDone()) {
+//               this.stop();
+//           }
+//        });
         try {
             channel.writeAndFlush(rpcRequest).await();
+            return clientHandler.getRpcResponse(rpcRequest.getRequestId());
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            this.stop();
         }
-        return clientHandler.getRpcResponse(rpcRequest.getRequestId());
+        return null;
     }
 }
