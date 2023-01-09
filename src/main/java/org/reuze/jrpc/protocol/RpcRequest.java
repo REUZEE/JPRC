@@ -3,6 +3,7 @@ package org.reuze.jrpc.protocol;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.reuze.jrpc.common.RpcType;
 
 /**
  * @author Reuze
@@ -11,7 +12,8 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class RpcRequest {
+public class RpcRequest extends RpcMessage {
+    private byte rpcType = RpcType.REQUEST.getValue();
     private String requestId;
     private String className;
     private String methodName;
