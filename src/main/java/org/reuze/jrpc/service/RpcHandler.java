@@ -4,7 +4,11 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.reuze.jrpc.common.RpcType;
+import org.reuze.jrpc.protocol.RpcMessage;
 import org.reuze.jrpc.protocol.RpcRequest;
 import org.reuze.jrpc.protocol.RpcResponse;
 
@@ -17,7 +21,7 @@ import java.util.Map;
  */
 @ChannelHandler.Sharable
 @Slf4j
-public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
+public class RpcHandler extends SimpleChannelInboundHandler<RpcMessage> {
 
     private Map interface2Impl;
 
@@ -26,7 +30,13 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) {
+    protected void channelRead0(ChannelHandlerContext ctx, RpcMessage rpcMessage) {
+        if (rpcMessage.getRpcType() == RpcType.PING.getValue()) {
+            log.info("Receive heartbeat ...");
+            return;
+        }
+        RpcRequest rpcRequest = (RpcRequest) rpcMessage;
+        log.info("Receive rpcRequest: {}", rpcRequest.toString());
         RpcResponse rpcResponse = new RpcResponse();
         rpcResponse.setRequestId(rpcRequest.getRequestId());
         try {
@@ -38,6 +48,19 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
         }
         ctx.writeAndFlush(rpcResponse);
         log.info("Return RpcResponse: {}", rpcResponse.toString());
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleState state = ((IdleStateEvent) evt).state();
+            if (state == IdleState.READER_IDLE) {
+                log.info("Idle check, close the connection");
+                ctx.close();
+            }
+        } else {
+            super.userEventTriggered(ctx, evt);
+        }
     }
 
     private Object handler(RpcRequest rpcRequest) throws Exception {

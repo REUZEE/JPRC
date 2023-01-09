@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.reuze.jrpc.protocol.serialize.JsonSerializer;
 import org.reuze.jrpc.service.ClientHandler;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Reuze
@@ -53,7 +55,7 @@ public class RpcClient {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        // pipeline.addLast(new LengthFieldBasedFrameDecoder(65535,0,4));
+                        pipeline.addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
                         pipeline.addLast("encoder", new RpcEncoder(RpcRequest.class, new JsonSerializer()));
                         pipeline.addLast("decoder", new RpcDecoder(RpcResponse.class, new JsonSerializer()));
                         pipeline.addLast("handler", clientHandler);

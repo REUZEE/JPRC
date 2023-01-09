@@ -3,8 +3,11 @@ package org.reuze.jrpc.service;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.reuze.jrpc.common.DefaultFuture;
+import org.reuze.jrpc.protocol.RpcPing;
 import org.reuze.jrpc.protocol.RpcRequest;
 import org.reuze.jrpc.protocol.RpcResponse;
 
@@ -43,7 +46,21 @@ public class ClientHandler extends ChannelDuplexHandler {
         super.channelRead(ctx, msg);
     }
 
-    public RpcResponse getRpcResponse(String requestId) {
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleState state = ((IdleStateEvent) evt).state();
+            if (state == IdleState.WRITER_IDLE) {
+                RpcPing rpcPing = new RpcPing();
+                ctx.channel().writeAndFlush(rpcPing);
+                log.info("Send heartbeat ...");
+            }
+        } else {
+            super.userEventTriggered(ctx, evt);
+        }
+    }
+
+        public RpcResponse getRpcResponse(String requestId) {
         try {
             DefaultFuture defaultFuture = futureMap.get(requestId);
             return defaultFuture.getRpcResponse(10);
