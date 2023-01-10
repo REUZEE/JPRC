@@ -13,5 +13,4 @@ public interface LoadBalance {
 
     URL select(List<URL> urls);
 
-    URL select(List<URL> urls, RpcRequest rpcRequest);
 }
