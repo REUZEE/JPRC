@@ -14,11 +14,6 @@ public class RandomLoadBalancer implements LoadBalance {
 
     @Override
     public URL select(List<URL> urls) {
-        return select(urls, null);
-    }
-
-    @Override
-    public URL select(List<URL> urls, RpcRequest rpcRequest) {
         int size = urls.size();
         Random random = new Random();
         int idx = random.nextInt(size);
