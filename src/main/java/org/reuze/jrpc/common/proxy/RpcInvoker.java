@@ -1,5 +1,6 @@
 package org.reuze.jrpc.common.proxy;
 
+import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.reuze.jrpc.client.RpcClient;
 import org.reuze.jrpc.common.URL;
@@ -32,6 +33,7 @@ public class RpcInvoker<T> implements InvocationHandler {
         loadBalance = new RandomLoadBalancer();
     }
 
+    @Deprecated
     public RpcInvoker(RpcClient rpcClient, Class<T> clz) {
         this.clz = clz;
         this.rpcClient = rpcClient;
@@ -46,10 +48,6 @@ public class RpcInvoker<T> implements InvocationHandler {
         rpcRequest.setParameterTypes(method.getParameterTypes());
         rpcRequest.setParameter(args);
 
-        if (rpcClient != null) {
-            return rpcClient.send(rpcRequest).getResult();
-        }
-
         URL condition = new URL();
         condition.setServiceName(rpcRequest.getClassName());
         List<URL> urls = registry.lookup(condition);
@@ -58,7 +56,8 @@ public class RpcInvoker<T> implements InvocationHandler {
             return null;
         }
         URL selected = loadBalance.select(urls);
-        rpcClient = new RpcClient(selected.getIp(), selected.getPort());
-        return rpcClient.send(rpcRequest).getResult();
+        rpcClient = RpcClient.getInstance();
+        Channel channel = rpcClient.getChannel(selected.getIp(), selected.getPort());
+        return rpcClient.send(rpcRequest, channel).getResult();
     }
 }
