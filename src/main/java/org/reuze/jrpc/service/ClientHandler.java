@@ -25,11 +25,10 @@ public class ClientHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        // log.info("Send msg: {}", msg.getClass());
         if (msg instanceof RpcRequest) {
             RpcRequest rpcRequest = (RpcRequest) msg;
-            log.info("Send rpcRequest: {}", rpcRequest);
-            futureMap.putIfAbsent(rpcRequest.getRequestId(), new DefaultFuture());
+            // log.info("Send rpcRequest: {}", rpcRequest);
+            // futureMap.putIfAbsent(rpcRequest.getRequestId(), new DefaultFuture());
         }
         super.write(ctx, msg, promise);
     }
@@ -60,7 +59,11 @@ public class ClientHandler extends ChannelDuplexHandler {
         }
     }
 
-        public RpcResponse getRpcResponse(String requestId) {
+    public void setDefaultFuture(String requestId, DefaultFuture defaultFuture) {
+        futureMap.putIfAbsent(requestId, new DefaultFuture());
+    }
+
+    public RpcResponse getRpcResponse(String requestId) {
         try {
             DefaultFuture defaultFuture = futureMap.get(requestId);
             return defaultFuture.getRpcResponse(10);

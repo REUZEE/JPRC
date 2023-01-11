@@ -1,4 +1,4 @@
-package org.reuze.jrpc;
+package org.reuze.jrpc.client;
 
 import org.junit.After;
 import org.junit.Test;
@@ -6,12 +6,26 @@ import org.junit.Test;
 import org.reuze.jrpc.client.RpcClient;
 import org.reuze.jrpc.common.proxy.JRpcProxy;
 import org.reuze.jrpc.service.Calculate;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 
 /**
  * @author Reuze
  * @Date 05/01/2023
  */
-public class Client {
+@SpringBootApplication
+public class Client implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Client.class, args);
+    }
+
+    @Override
+    public void customize(ConfigurableServletWebServerFactory factory) {
+        factory.setPort(18080);
+    }
 
     RpcClient rpcClient;
 
