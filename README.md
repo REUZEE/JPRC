@@ -1,2 +1,2 @@
-# JPRC
+# JRPC
 Java RPC
