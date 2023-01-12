@@ -58,6 +58,6 @@ public class RpcInvoker<T> implements InvocationHandler {
         URL selected = loadBalance.select(urls);
         rpcClient = RpcClient.getInstance();
         Channel channel = rpcClient.getChannel(selected.getIp(), selected.getPort());
-        return rpcClient.send(rpcRequest, channel).getResult();
+        return rpcClient.send(rpcRequest, channel);
     }
 }
