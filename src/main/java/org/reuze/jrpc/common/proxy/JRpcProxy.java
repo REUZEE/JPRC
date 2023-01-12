@@ -19,6 +19,6 @@ public class JRpcProxy {
     @SuppressWarnings("unchecked")
     public static <T> T getProxy(Class<T> clz) {
         return (T) Proxy.newProxyInstance(clz.getClassLoader(),
-                new Class<?>[]{clz}, new RpcInvoker<T>(clz));
+                new Class<?>[]{clz}, new RetryInvoker(new RpcInvoker<T>(clz)));
     }
 }
