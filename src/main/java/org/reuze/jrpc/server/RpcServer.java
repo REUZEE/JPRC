@@ -68,8 +68,10 @@ public class RpcServer {
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 pipeline.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-                pipeline.addLast("decoder", new RpcDecoder(RpcRequest.class, new JsonSerializer()));
-                pipeline.addLast("encoder", new RpcEncoder(RpcResponse.class, new JsonSerializer()));
+                // pipeline.addLast("decoder", new RpcDecoder(RpcRequest.class, new JsonSerializer()));
+                // pipeline.addLast("encoder", new RpcEncoder(RpcResponse.class, new JsonSerializer()));
+                pipeline.addLast(new RpcDecoder());
+                pipeline.addLast(new RpcEncoder());
                 pipeline.addLast("handler", new RpcHandler(interface2Impl));
             }
         });
