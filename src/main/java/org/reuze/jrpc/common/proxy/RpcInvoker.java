@@ -7,6 +7,7 @@ import org.reuze.jrpc.common.URL;
 import org.reuze.jrpc.common.loadbalance.LoadBalance;
 import org.reuze.jrpc.common.loadbalance.RandomLoadBalancer;
 import org.reuze.jrpc.protocol.RpcRequest;
+import org.reuze.jrpc.protocol.serialize.SerializerType;
 import org.reuze.jrpc.registry.Registry;
 import org.reuze.jrpc.registry.zk.ZkRegistry;
 
@@ -42,6 +43,7 @@ public class RpcInvoker<T> implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         RpcRequest rpcRequest = new RpcRequest();
+        rpcRequest.setSerializeType(SerializerType.KRYO_SERIALIZER.getValue());
         rpcRequest.setRequestId(UUID.randomUUID().toString());
         rpcRequest.setClassName(method.getDeclaringClass().getName());
         rpcRequest.setMethodName(method.getName());

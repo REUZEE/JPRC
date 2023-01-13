@@ -3,7 +3,6 @@ package org.reuze.jrpc.protocol;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.reuze.jrpc.common.RpcType;
 
 /**
  * @author Reuze
