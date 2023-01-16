@@ -8,7 +8,7 @@ import lombok.Setter;
  * @Date 08/01/2023
  */
 
-public class ZkClientOptions {
+public class ZkOptions {
 
     /**
      * 默认连接超时毫秒数
@@ -33,5 +33,10 @@ public class ZkClientOptions {
     /**
      * 根目录
      */
-    public static final String ROOT_PATH = System.getProperty("user.dir");
+    public static final String ROOT_PATH = "/rpc";
+
+    public static final String ZK_IP = "127.0.0.1";
+
+    public static final int ZK_PORT = 2181;
+
 }

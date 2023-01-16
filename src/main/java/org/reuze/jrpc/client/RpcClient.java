@@ -84,6 +84,7 @@ public class RpcClient {
                 channel = bootstrap.connect(address).sync().channel();
             } catch (Exception e) {
                 e.printStackTrace();
+                return null;
             }
         }
         return channel;
