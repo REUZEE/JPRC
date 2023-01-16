@@ -31,7 +31,8 @@ public class RpcInvoker<T> implements InvocationHandler {
     public RpcInvoker(Class<T> clz) {
         this.clz = clz;
         this.registry = new ZkRegistry();
-        loadBalance = new RandomLoadBalancer();
+        this.loadBalance = new RandomLoadBalancer();
+        this.rpcClient = RpcClient.getInstance();
     }
 
     @Deprecated
@@ -51,15 +52,22 @@ public class RpcInvoker<T> implements InvocationHandler {
         rpcRequest.setParameter(args);
 
         URL condition = new URL();
+        Channel channel;
         condition.setServiceName(rpcRequest.getClassName());
-        List<URL> urls = registry.lookup(condition);
-        if (urls.isEmpty()) {
-            log.info("No service registered");
-            return null;
-        }
-        URL selected = loadBalance.select(urls);
-        rpcClient = RpcClient.getInstance();
-        Channel channel = rpcClient.getChannel(selected.getIp(), selected.getPort());
+        int retryTimes = 3;
+        do {
+            if (--retryTimes < 0) {
+                return null;
+            }
+            List<URL> urls = registry.lookup(condition);
+            if (urls.isEmpty()) {
+                log.info("No service registered");
+                return null;
+            }
+            URL selected = loadBalance.select(urls);
+            channel = rpcClient.getChannel(selected.getIp(), selected.getPort());
+        } while (channel == null || !channel.isActive());
+
         return rpcClient.send(rpcRequest, channel);
     }
 }

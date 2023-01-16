@@ -1,6 +1,7 @@
 package org.reuze.jrpc.service;
 
 import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.timeout.IdleState;
@@ -19,17 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date 05/01/2023
  */
 @Slf4j
+@ChannelHandler.Sharable
 public class ClientHandler extends ChannelDuplexHandler {
 
     private final Map<String, DefaultFuture> futureMap = new ConcurrentHashMap<>();
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof RpcRequest) {
-            RpcRequest rpcRequest = (RpcRequest) msg;
-            // log.info("Send rpcRequest: {}", rpcRequest);
-            // futureMap.putIfAbsent(rpcRequest.getRequestId(), new DefaultFuture());
-        }
         super.write(ctx, msg, promise);
     }
 

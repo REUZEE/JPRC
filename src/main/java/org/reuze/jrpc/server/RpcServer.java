@@ -14,6 +14,7 @@ import org.reuze.jrpc.protocol.codec.RpcDecoder;
 import org.reuze.jrpc.protocol.codec.RpcEncoder;
 import org.reuze.jrpc.protocol.serialize.JsonSerializer;
 import org.reuze.jrpc.registry.Registry;
+import org.reuze.jrpc.registry.zk.ZkOptions;
 import org.reuze.jrpc.registry.zk.ZkRegistry;
 import org.reuze.jrpc.registry.zk.RegistryFactory;
 import org.reuze.jrpc.registry.zk.ZkRegistryFactory;
@@ -95,8 +96,8 @@ public class RpcServer {
     private void connectRegistry() {
         RegistryFactory registryFactory = new ZkRegistryFactory();
         URL url = new URL();
-        url.setIp(ZkRegistry.ZK_IP );
-        url.setPort(ZkRegistry.ZK_PORT);
+        url.setIp(ZkOptions.ZK_IP);
+        url.setPort(ZkOptions.ZK_PORT);
         registry = registryFactory.getRegistry(url);
     }
 

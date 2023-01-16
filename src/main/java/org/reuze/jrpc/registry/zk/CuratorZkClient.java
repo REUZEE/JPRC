@@ -10,6 +10,8 @@ import org.reuze.jrpc.common.URL;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -20,17 +22,19 @@ public class CuratorZkClient {
 
     private final CuratorFramework client;
 
+    private static final Map<String, CuratorCache> LISTENER_MAP = new ConcurrentHashMap<>();
+
     public CuratorZkClient(URL url) {
 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(url.getAddress())
-                .retryPolicy(new RetryNTimes(ZkClientOptions.RETRY_TIMES, ZkClientOptions.RETRY_SLEEP_MS))
-                .connectionTimeoutMs(ZkClientOptions.DEFAULT_CONNECTION_TIMEOUT_MS)
-                .sessionTimeoutMs(ZkClientOptions.DEFAULT_SESSION_TIMEOUT_MS);
+                .retryPolicy(new RetryNTimes(ZkOptions.RETRY_TIMES, ZkOptions.RETRY_SLEEP_MS))
+                .connectionTimeoutMs(ZkOptions.DEFAULT_CONNECTION_TIMEOUT_MS)
+                .sessionTimeoutMs(ZkOptions.DEFAULT_SESSION_TIMEOUT_MS);
         client = builder.build();
         client.start();
         try {
-            client.blockUntilConnected(ZkClientOptions.DEFAULT_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            client.blockUntilConnected(ZkOptions.DEFAULT_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,7 +74,11 @@ public class CuratorZkClient {
     }
 
     public void addListener(String path, CuratorCacheListener listener) {
+        if (LISTENER_MAP.containsKey(path)) {
+            return;
+        }
         CuratorCache curatorCache = CuratorCache.build(client, path);
+        LISTENER_MAP.put(path, curatorCache);
         curatorCache.listenable().addListener(listener);
         curatorCache.start();
     }
