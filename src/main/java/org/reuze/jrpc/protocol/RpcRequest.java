@@ -1,9 +1,10 @@
 package org.reuze.jrpc.protocol;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.reuze.jrpc.common.RpcType;
+import org.reuze.jrpc.protocol.serialize.SerializerType;
 
 /**
  * @author Reuze

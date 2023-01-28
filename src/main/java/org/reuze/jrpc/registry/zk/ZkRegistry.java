@@ -1,5 +1,6 @@
 package org.reuze.jrpc.registry.zk;
 
+import lombok.extern.slf4j.Slf4j;
 import org.reuze.jrpc.common.URL;
 import org.reuze.jrpc.registry.AbstractRegistry;
 
@@ -10,20 +11,15 @@ import java.util.List;
  * @author Reuze
  * @Date 08/01/2023
  */
+@Slf4j
 public class ZkRegistry extends AbstractRegistry {
 
     private final CuratorZkClient zkClient;
 
-    private static final String ROOT_PATH = "/rpc";
-
-    public static final String ZK_IP = "127.0.0.1";
-
-    public static final int ZK_PORT = 2181;
-
     public ZkRegistry() {
         URL url = new URL();
-        url.setIp(ZK_IP);
-        url.setPort(ZK_PORT);
+        url.setIp(ZkOptions.ZK_IP);
+        url.setPort(ZkOptions.ZK_PORT);
         zkClient = new CuratorZkClient(url);
     }
 
@@ -34,11 +30,13 @@ public class ZkRegistry extends AbstractRegistry {
     @Override
     protected void doRegister(URL url) {
         zkClient.createEphemeralNode(url2Path(url));
+        watch(url);
     }
 
     @Override
     protected void doUnregister(URL url) {
         zkClient.removeNode(url2Path(url));
+        watch(url);
     }
 
     @Override
@@ -52,18 +50,25 @@ public class ZkRegistry extends AbstractRegistry {
             url.setServiceName(condition.getServiceName());
             urls.add(url);
         }
+        for (URL url : urls) {
+            watch(url);
+        }
         return urls;
     }
 
     private void watch(URL url) {
-        // String path =
+        String path = url2Path(url);
+        zkClient.addListener(path, ((type, oldData, data) -> {
+            log.info("watch event, type = {}, oldData = {}, data = {}", type, oldData, data);
+            reset(url);
+        }));
     }
 
     private String url2Path(URL url) {
         if (url.getAddress() == null) {
-            return ROOT_PATH + "/" + url.getServiceName();
+            return ZkOptions.ROOT_PATH + "/" + url.getServiceName();
         }
-        return ROOT_PATH + "/" + url.getServiceName() + "/" + url.getAddress();
+        return ZkOptions.ROOT_PATH + "/" + url.getServiceName() + "/" + url.getAddress();
     }
 
 }
