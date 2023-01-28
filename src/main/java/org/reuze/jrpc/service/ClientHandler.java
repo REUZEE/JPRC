@@ -49,7 +49,7 @@ public class ClientHandler extends ChannelDuplexHandler {
             if (state == IdleState.WRITER_IDLE) {
                 RpcPing rpcPing = new RpcPing();
                 ctx.channel().writeAndFlush(rpcPing);
-                log.info("Send heartbeat ...");
+                log.info("Send heartbeat to " + ctx.channel().remoteAddress() + " ...");
             }
         } else {
             super.userEventTriggered(ctx, evt);
